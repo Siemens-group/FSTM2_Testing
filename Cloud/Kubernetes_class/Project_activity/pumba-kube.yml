@@ -1,0 +1,48 @@
+# `docker run -d -v /var/run/docker.sock:/var/run/docker.sock gaiaadm/pumba pumba --random --interval 3m kill --signal
+# SIGKILL "re2:*complex.*"
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: pumba
+spec:
+  selector:
+    matchLabels:
+      app: pumba
+  template:
+    metadata:
+      labels:
+        app: pumba
+        com.gaiaadm.pumba: 'true' # prevent pumba from killing itself
+    spec:
+      volumes:
+        - hostPath:
+            path: /var/run/docker.sock
+      containers:
+      # randomly pause containers in Pod named 'test-1' every minute for 30 sec
+      - image: gaiaadm/pumba
+        imagePullPolicy: Always
+        name: pumba-pause
+        args:
+          - --random
+          - --log-level
+          - info
+          - --label
+          - io.kubernetes.pod.name=test-1
+          - --interval
+          - 30s
+          - pause
+          - --duration 
+          - 20s
+        securityContext:
+          # privileged: true
+          capabilities:
+            add: ["NET_ADMIN"]
+        resources:
+          limits:
+            cpu: 100m
+            memory: 20M
+        volumeMounts:
+          - name: dockersocket
+            mountPath: /var/run/docker.sock
+     

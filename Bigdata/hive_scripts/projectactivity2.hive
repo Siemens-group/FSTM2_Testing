@@ -1,0 +1,16 @@
+-- Drop old tables
+DROP TABLE inputfiles_two;
+
+-- Create a table to store results
+CREATE TABLE inputfiles_two (name STRING,dialogue STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t';
+
+-- Load data into the database using a file on your local system (NOT HDFS)
+LOAD DATA LOCAL INPATH '/root/inputs/episodeIV_dialogues.txt' INTO TABLE inputfiles_two;
+
+-- print results to local filesystem
+INSERT OVERWRITE LOCAL DIRECTORY '/root/HiveOutputProject2'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+SELECT count(*),name FROM inputfiles_two
+where name='LUKE'
+group by name having count(name)>1;

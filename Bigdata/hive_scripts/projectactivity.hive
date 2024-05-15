@@ -1,0 +1,19 @@
+-- Drop old tables
+DROP TABLE inputfiles;
+DROP TABLE word_counts;
+
+-- Create a table to store results
+CREATE TABLE inputfiles (name STRING,dialogue STRING)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t';
+
+-- Load data into the database using a file on your local system (NOT HDFS)
+LOAD DATA LOCAL INPATH '/root/inputs/episodeIV_dialogues.txt' INTO TABLE inputfiles;
+LOAD DATA LOCAL INPATH '/root/inputs/episodeV_dialogues.txt' INTO TABLE inputfiles;
+LOAD DATA LOCAL INPATH '/root/inputs/episodeVI_dialogues.txt' INTO TABLE inputfiles;
+
+-- print results to local filesystem
+INSERT OVERWRITE LOCAL DIRECTORY '/root/HiveOutputProject'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+SELECT count(*),name FROM inputfiles
+group by name
+order by count(dialogue) desc;
